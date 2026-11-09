@@ -1340,8 +1340,16 @@ function get_station_list()
 end
 
 function reset_wifi(devname)
+    -- Handle both old and new driver config paths
     if devname then
-        os.execute("cp -f /rom/etc/wireless/"..devname.."/ /etc/wireless/")
+        -- Try new driver path first, then fall back to old
+        local new_path = "/rom/etc/wireless/mt7628/"
+        local old_path = "/rom/etc/wireless/"..devname.."/"
+        if mtkwifi.exists(new_path.."mt7628.dat") then
+            os.execute("cp -f "..new_path.." /etc/wireless/")
+        else
+            os.execute("cp -f "..old_path.." /etc/wireless/")
+        end
     else
         os.execute("cp -rf /rom/etc/wireless /etc/")
     end
