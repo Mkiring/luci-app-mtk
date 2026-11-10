@@ -141,9 +141,11 @@ return L.view.extend({
 					throw j.message || 'save failed';
 
 				return L.Request.post(L.url('admin/mtk/wifi/wifi_reload', { token: L.env.token }), new FormData())
-					.then(function() { return true; });
+					.then(function(r) { return r.json(); });
 			})
-			.then(function() {
+			.then(function(j) {
+				if (j.status == 'error')
+					throw 'wifi-mtk: ' + (j.output || ('exit ' + j.exit));
 				ui.showModal(_('Success'), [
 					E('p', {}, _('Settings applied. WiFi is restarting, this page will reload in 5 seconds.')),
 					E('button', { 'class': 'cbi-button', 'click': function() { location.reload(); } }, _('Reload now'))

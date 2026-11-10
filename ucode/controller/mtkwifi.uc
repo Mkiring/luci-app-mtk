@@ -126,27 +126,25 @@ function action_dat_set() {
 }
 
 function action_wifi_reload() {
-	let res = { status: 'ok', output: '' };
-
-	if (call_wifimtk('restart'))
-		res.output = 'wifi-mtk restart issued';
-	else
-		res = { status: 'error', output: 'failed to execute wifi-mtk' };
-
 	http.prepare_content('application/json');
-	http.write_json(res);
+	http.write_json(call_wifimtk('restart'));
 }
 
 function call_wifimtk(cmd) {
 	let fd = popen(`${WIFIMTK} ${cmd} 2>&1`, 'r');
 
 	if (!fd)
-		return false;
+		return { status: 'error', output: 'popen failed' };
 
-	fd.read('all');
-	fd.close();
+	let output = fd.read('all');
+	let exit = fd.close();
 
-	return true;
+	return {
+		status: (exit == 0) ? 'ok' : 'error',
+		exit: exit,
+		command: `${WIFIMTK} ${cmd}`,
+		output: output ?? ''
+	};
 }
 
 return {
