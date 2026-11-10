@@ -57,14 +57,6 @@ return L.view.extend({
 			return E('tr', {}, [ E('td', { 'width': '30%' }, label), E('td', {}, widget) ]);
 		}
 
-		var saveBtn = E('button', {
-			'class': 'cbi-button cbi-button-apply',
-			'click': function(ev) {
-				ev.preventDefault();
-				self.handleSave();
-			}
-		}, _('Save and Apply'));
-
 		return E('div', { 'class': 'cbi-map', 'id': 'cbi-mtk-dev' }, [
 			E('h2', {}, _('Device Configuration - mt7628 (2.4 GHz)')),
 			E('div', { 'class': 'cbi-section' }, [
@@ -78,12 +70,12 @@ return L.view.extend({
 					row(_('Beacon interval (ms)'), this.beaconInput),
 					row(_('DTIM interval'), this.dtimInput)
 				])
-			]),
-			E('div', { 'class': 'cbi-page-actions' }, [ saveBtn ])
+			])
 		]);
 	},
 
-	handleSave: function() {
+	handleSaveApply: function(ev) {
+		ev.preventDefault();
 		var vals = {
 			Channel: this.chSel.getValue(),
 			WirelessMode: this.modeSel.getValue(),
@@ -107,7 +99,7 @@ return L.view.extend({
 		var fd = new FormData();
 			fd.append('data', JSON.stringify(vals));
 
-			L.Request.post(L.url('admin/mtk/wifi/dat_set', { token: L.env.token }), fd)
+			return L.Request.post(L.url('admin/mtk/wifi/dat_set', { token: L.env.token }), fd)
 			.then(function(r) { return r.json(); })
 			.then(function(j) {
 				if (j.status == 'error')

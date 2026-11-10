@@ -125,20 +125,6 @@ function action_dat_set() {
 	});
 }
 
-function action_wifi_reload() {
-	let res;
-
-	try {
-		res = call_wifimtk('restart');
-	}
-	catch (e) {
-		res = { status: 'error', output: 'exception: ' + e };
-	}
-
-	http.prepare_content('application/json');
-	http.write_json(res);
-}
-
 function call_wifimtk(cmd) {
 	let fd = popen(`${WIFIMTK} ${cmd} 2>&1`, 'r');
 
@@ -154,6 +140,20 @@ function call_wifimtk(cmd) {
 		command: `${WIFIMTK} ${cmd}`,
 		output: output ?? ''
 	};
+}
+
+function action_wifi_reload() {
+	let res;
+
+	try {
+		res = call_wifimtk('restart');
+	}
+	catch (e) {
+		res = { status: 'error', output: 'exception: ' + e };
+	}
+
+	http.prepare_content('application/json');
+	http.write_json(res);
 }
 
 return {

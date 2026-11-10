@@ -59,14 +59,6 @@ return L.view.extend({
 		this.authSel = authSel;
 		this.encSel = encSel;
 
-		var saveBtn = E('button', {
-			'class': 'cbi-button cbi-button-apply',
-			'click': function(ev) {
-				ev.preventDefault();
-				self.handleSave();
-			}
-		}, _('Save and Apply'));
-
 		var table = E('table', { 'class': 'table' }, [
 			E('tr', {}, [ E('td', { 'width': '30%' }, _('SSID')), E('td', {}, ssidInput) ]),
 			encRow = E('tr', {}, [ E('td', {}, _('Encryption')), E('td', {}, encSel.render()) ]),
@@ -89,12 +81,12 @@ return L.view.extend({
 					E('tr', {}, [ E('td', { 'width': '30%' }, _('Authentication')), E('td', {}, authTd) ])
 				]),
 				table
-			]),
-			E('div', { 'class': 'cbi-page-actions' }, [ saveBtn ])
+			])
 		]);
 	},
 
-	handleSave: function() {
+	handleSaveApply: function(ev) {
+		ev.preventDefault();
 		var ssid = document.querySelector('#cbi-mtk-vif input.cbi-input-text[maxlength="32"]').value.trim();
 		var psk  = document.querySelector('#cbi-mtk-vif input[type="password"]').value;
 
@@ -134,7 +126,7 @@ return L.view.extend({
 		var fd = new FormData();
 			fd.append('data', JSON.stringify(vals));
 
-			L.Request.post(L.url('admin/mtk/wifi/dat_set', { token: L.env.token }), fd)
+			return L.Request.post(L.url('admin/mtk/wifi/dat_set', { token: L.env.token }), fd)
 			.then(function(r) { return r.json(); })
 			.then(function(j) {
 				if (j.status == 'error')
