@@ -104,13 +104,16 @@ return L.view.extend({
 
 		ui.showModal(_('Applying settings…'), [ E('p', { 'class': 'spinning' }, _('Saving profile and restarting WiFi…')) ]);
 
-		L.Request.post(L.url('admin/mtk/wifi/dat_set'), { data: JSON.stringify(vals), token: L.env.token })
+		var fd = new FormData();
+			fd.append('data', JSON.stringify(vals));
+
+			L.Request.post(L.url('admin/mtk/wifi/dat_set', { token: L.env.token }), fd)
 			.then(function(r) { return r.json(); })
 			.then(function(j) {
 				if (j.status == 'error')
 					throw j.message || 'save failed';
 
-				return L.Request.post(L.url('admin/mtk/wifi/wifi_reload'), { token: L.env.token })
+				return L.Request.post(L.url('admin/mtk/wifi/wifi_reload', { token: L.env.token }), new FormData())
 					.then(function() { return true; });
 			})
 			.then(function() {
