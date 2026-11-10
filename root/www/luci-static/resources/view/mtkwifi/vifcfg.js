@@ -1,7 +1,8 @@
 'use strict';
 /* MT7628 AP interface (ra0) configuration, rewritten as a native LuCI view. */
 
-return L.view.extend({
+return L.require('ui').then(function(ui) {
+	return L.view.extend({
 	title: _('MTK WiFi - Interface Configuration'),
 
 	load: function() {
@@ -149,4 +150,5 @@ return L.view.extend({
 				ui.showModal(_('Error'), [ E('p', {}, _('Failed: ') + err), ui.createInlineButton() ]);
 			});
 	}
+});
 });
