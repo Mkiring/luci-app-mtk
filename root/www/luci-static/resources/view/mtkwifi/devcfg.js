@@ -20,31 +20,31 @@ return L.view.extend({
 
 		var self = this;
 
-		var channels = [ [ '0', _('Auto') ] ];
+		var channels = { '0': _('Auto') };
 		for (var ch = 1; ch <= 13; ch++)
-			channels.push([ '' + ch, '' + ch + ' (' + (2412 + (ch - 1) * 5) + ' MHz)' ]);
+			channels['' + ch] = ch + ' (' + (2412 + (ch - 1) * 5) + ' MHz)';
 
-		var modes = [
-			[ '9', _('802.11b/g/n mixed') ],
-			[ '4', _('802.11b/g') ],
-			[ '1', _('802.11b only') ]
-		];
+		var modes = {
+			'9': _('802.11b/g/n mixed'),
+			'4': _('802.11b/g'),
+			'1': _('802.11b only')
+		};
 
-		var countries = [
-			[ 'CN', 'CN (China)' ],
-			[ 'US', 'US' ],
-			[ 'EU', 'EU' ],
-			[ 'TW', 'TW' ],
-			[ '00', _('World (00)') ]
-		];
+		var countries = {
+			'CN': 'CN (China)',
+			'US': 'US',
+			'EU': 'EU',
+			'TW': 'TW',
+			'00': _('World (00)')
+		};
 
 		this.chSel = new ui.Dropdown(dat.Channel || '0', channels, { sort: false });
 		this.modeSel = new ui.Dropdown(dat.WirelessMode || '9', modes, { sort: false });
 		this.ctrySel = new ui.Dropdown(dat.CountryCode || 'CN', countries, { sort: false });
 		this.bwSel = new ui.Dropdown(dat.HT_BW || '0',
-			[ [ '0', _('20 MHz') ], [ '1', _('40 MHz') ] ], { sort: false });
+			{ '0': _('20 MHz'), '1': _('40 MHz') }, { sort: false });
 		this.giSel = new ui.Dropdown(dat.HT_GI || '1',
-			[ [ '0', _('Long GI') ], [ '1', _('Short GI') ] ], { sort: false });
+			{ '0': _('Long GI'), '1': _('Short GI') }, { sort: false });
 
 		this.pwrInput = E('input', { 'class': 'cbi-input-text', 'type': 'number',
 			'min': 1, 'max': 100, 'value': dat.TxPower || '100' });

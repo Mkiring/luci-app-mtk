@@ -7,7 +7,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-mtk
 PKG_VERSION:=1.0
-PKG_RELEASE:=12
+PKG_RELEASE:=13
 PKG_MAINTAINER:=Hua Shao <nossiac@163.com>
 PKG_LICENSE:=Apache-2.0
 

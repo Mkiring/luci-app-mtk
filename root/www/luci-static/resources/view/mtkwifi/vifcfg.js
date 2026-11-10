@@ -20,18 +20,17 @@ return L.view.extend({
 
 		var self = this;
 
-		var authModes = [
-			[ 'Disable',      _('Disable (open)') ],
-			[ 'OPEN',         _('OPEN') ],
-			[ 'WPA2PSK',      _('WPA2-PSK') ],
-			[ 'WPAPSKWPA2PSK', _('WPA/WPA2-PSK mixed') ]
-		];
+		var authModes = {
+			'Disable':       _('Disable (open)'),
+			'OPEN':          _('OPEN'),
+			'WPA2PSK':       _('WPA2-PSK'),
+			'WPAPSKWPA2PSK': _('WPA/WPA2-PSK mixed')
+		};
 
-		var encTypes = [ 'AES', 'TKIPAES' ];
+		var encTypes = { 'AES': 'AES', 'TKIPAES': 'TKIPAES' };
 
 		var authSel = new ui.Dropdown(dat.AuthMode || 'WPA2PSK', authModes, { sort: false, optional: false });
-		var encSel  = new ui.Dropdown(dat.EncrypType || 'AES',
-			encTypes.map(function(v) { return [ v, v ]; }), { sort: false, optional: false });
+		var encSel  = new ui.Dropdown(dat.EncrypType || 'AES', encTypes, { sort: false, optional: false });
 		var ssidInput = E('input', { 'class': 'cbi-input-text', 'value': dat.SSID1 || '',
 			'maxlength': 32, 'placeholder': 'OpenWrt' });
 		var pskInput = E('input', { 'class': 'cbi-input-text', 'value': dat.WPAPSK1 || '',
