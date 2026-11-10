@@ -891,8 +891,10 @@ function mtkwifi.search_dev_and_profile_orig()
     -- case 2: mt76xx.n.dat (multiple card of same dev)
     -- case 3: mt76xx.n.nG.dat (case 2 plus dbdc and multi-profile, bloody hell....)
     for _, line in ipairs(mtkwifi.__lines(dirout)) do
+      if line ~= "" then
         local tmpout = mtkwifi.read_pipe("find /etc/wireless/"..line.." -type f -name \"*.dat\"")
         for _, datfile in ipairs(mtkwifi.__lines(tmpout or "")) do
+          if datfile ~= "" then
             repeat do
             -- for case 1
             local devname = string.match(datfile, "("..line..").dat")
@@ -913,7 +915,9 @@ function mtkwifi.search_dev_and_profile_orig()
                 break
             end
             end until true
+          end
         end
+      end
     end
     return result
 end
