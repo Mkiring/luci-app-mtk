@@ -1,0 +1,89 @@
+#!/bin/sh
+# Control script for the MT7628 vendor WiFi AP driver (mt7628.ko).
+#
+# The driver only re-reads its /etc/wireless/mt7628/mt7628.dat profile
+# when the main interface is brought down and up again, so "reload" is
+# implemented as down+up of all ra*/apcli* interfaces.
+#
+# Kept separate from /sbin/wifi on purpose: the stock OpenWrt wifi script
+# is netifd/ubus based and knows nothing about this WEXT driver.
+
+PROFILE_DIR=/etc/wireless/mt7628
+DEFAULT_PROFILE=/usr/share/mt7628/mt7628.dat
+MODULE=mt7628
+
+iface_list() {
+	for i in /sys/class/net/ra[0-9]* /sys/class/net/rai[0-9]* /sys/class/net/rae[0-9]* \
+	         /sys/class/net/apcli[0-9]* /sys/class/net/apclii[0-9]* /sys/class/net/apclie[0-9]*; do
+		[ -e "$i" ] && echo "${i##*/}"
+	done
+}
+
+ensure_module() {
+	[ -e /sys/class/net/ra0 ] && return 0
+	grep -qw "$MODULE" /proc/modules 2>/dev/null && return 0
+	modprobe "$MODULE" 2>/dev/null || insmod "/lib/modules/$(uname -r)/$MODULE.ko" 2>/dev/null
+	sleep 1
+}
+
+bridge_lan() {
+	# keep the main AP interface attached to br-lan
+	if [ -d /sys/class/net/br-lan ] && [ -d /sys/class/net/ra0 ] \
+	   && [ ! -e /sys/class/net/br-lan/brif/ra0 ]; then
+		brctl addif br-lan ra0 2>/dev/null
+	fi
+}
+
+wifi_up() {
+	ensure_module
+	for ifn in $(iface_list); do
+		case "$ifn" in
+			apcli*) ;;
+			*) ifconfig "$ifn" up ;;
+		esac
+	done
+	bridge_lan
+	rm -f /tmp/mtk/wifi/*.need_reload 2>/dev/null
+}
+
+wifi_down() {
+	for ifn in $(iface_list); do
+		ifconfig "$ifn" down 2>/dev/null
+	done
+}
+
+wifi_status() {
+	iwconfig 2>/dev/null
+	ifconfig -a
+}
+
+wifi_reset() {
+	if [ -f "$DEFAULT_PROFILE" ]; then
+		mkdir -p "$PROFILE_DIR"
+		cp -f "$DEFAULT_PROFILE" "$PROFILE_DIR/mt7628.dat"
+		wifi_down
+		wifi_up
+	elif [ -d /rom/etc/wireless ]; then
+		rm -rf /etc/wireless
+		cp -rf /rom/etc/wireless /etc/
+		wifi_down
+		wifi_up
+	else
+		echo "no default profile found, unable to reset" >&2
+		exit 1
+	fi
+}
+
+case "${1:-}" in
+	up)      wifi_up ;;
+	down)    wifi_down ;;
+	reload | restart)
+	         wifi_down
+	         sleep 1
+	         wifi_up ;;
+	reset)   wifi_reset ;;
+	status)  wifi_status ;;
+	*)
+	         echo "usage: $0 <up|down|restart|reload|reset|status> [devname]" >&2
+	         exit 1 ;;
+esac

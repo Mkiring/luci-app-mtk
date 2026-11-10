@@ -9,11 +9,6 @@
 package.path = '/lib/wifi/?.lua;'..package.path
 module("luci.controller.mtkwifi", package.seeall)
 local onboardingType = 0;
-local ioctl_help = require "ioctl_helper"
-local map_help
-if pcall(require, "map_helper") then
-    map_help = require "map_helper"
-end
 local http = require("luci.http")
 local mtkwifi = require("mtkwifi")
 
@@ -60,7 +55,7 @@ function index()
 
     entry({"admin", "mtk", "test"}, call("test"))
 
-    entry({"admin", "mtk"}, alias({"admin", "mtk", "console"}), _("MTK"), 80)
+    entry({"admin", "mtk"}, alias({"admin", "mtk", "wifi"}), _("MTK"), 80)
     entry({"admin", "mtk", "wifi"}, template("admin_mtk/mtk_wifi_overview"), _("WiFi configuration"), 1)
     entry({"admin", "mtk", "wifi", "dev_cfg_view"}, template("admin_mtk/mtk_wifi_dev_cfg")).leaf = true
     entry({"admin", "mtk", "wifi", "dev_cfg"}, call("dev_cfg")).leaf = true
@@ -85,8 +80,6 @@ function index()
     entry({"admin", "mtk", "wifi", "apcli_disconnect"}, call("apcli_disconnect")).leaf = true
     entry({"admin", "mtk", "wifi", "apcli_connect"}, call("apcli_connect")).leaf = true
     entry({"admin", "mtk", "netmode", "net_cfg"}, call("net_cfg"))
-    entry({"admin", "mtk", "console"}, template("admin_mtk/mtk_web_console"), _("Web Console"), 4)
-    entry({"admin", "mtk", "webcmd"}, call("webcmd"))
     -- entry({"admin", "mtk", "man"}, template("admin_mtk/mtk_wifi_man"), _("M.A.N"), 3)
     -- entry({"admin", "mtk", "man", "cfg"}, call("man_cfg"))
     entry({"admin", "mtk", "wifi", "get_wps_info"}, call("get_WPS_Info")).leaf = true
@@ -120,50 +113,6 @@ function index()
     --         break
     --     end
     -- end
-    if mtkwifi.exists("/lib/modules/ralink/hw_nat.ko") then 
-       entry({"admin", "mtk", "hwnat"}, template("admin_mtk/mtk_hwnat"), _("Hardware NAT"))
-       entry({"admin", "mtk", "hwnat", "toggle"}, call("hwnat_toggle")).leaf = true
-       entry({"admin", "mtk", "hwnat", "status"}, call("hwnat_status"))
-    end
-    -- Define map_help again here as same defination at top does not come under scope of luci library.
-    local map_help
-    if pcall(require, "map_helper") then
-        map_help = require "map_helper"
-    end
-    if map_help then
-        entry({"admin", "mtk", "multi_ap", "reset_to_default_easymesh"}, call("reset_to_default_easymesh")).leaf = true;
-        entry({"admin", "mtk", "multi_ap"}, template("admin_mtk/mtk_wifi_multi_ap"), _("EasyMesh"), 5);
-        entry({"admin", "mtk", "multi_ap", "map_cfg"}, call("map_cfg")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "get_device_role"}, call("get_device_role")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "trigger_mandate_steering_on_agent"}, call("trigger_mandate_steering_on_agent")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "trigger_back_haul_steering_on_agent"}, call("trigger_back_haul_steering_on_agent")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "trigger_wps_fh_agent"}, call("trigger_wps_fh_agent")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "display_runtime_topology"}, template("admin_mtk/mtk_wifi_map_runtime_topology")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "get_runtime_topology"}, call("get_runtime_topology")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "trigger_multi_ap_on_boarding"}, call("trigger_multi_ap_on_boarding")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "display_client_capabilities"}, template("admin_mtk/mtk_wifi_map_client_capabilities")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "get_client_capabilities"}, call("get_client_capabilities")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "display_ap_capabilities"}, template("admin_mtk/mtk_wifi_map_ap_capabilities")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "trigger_uplink_ap_selection"}, call("trigger_uplink_ap_selection")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "get_bh_connection_status"}, call("get_bh_connection_status")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "get_sta_steering_progress"}, call("get_sta_steering_progress")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "get_al_mac"}, call("get_al_mac")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "apply_wifi_bh_priority"}, call("apply_wifi_bh_priority")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "apply_ap_steer_rssi_th"}, call("apply_ap_steer_rssi_th")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "apply_channel_utilization_th"}, call("apply_channel_utilization_th")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "get_sta_bh_interface"}, call("get_sta_bh_interface")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "get_ap_bh_inf_list"}, call("get_ap_bh_inf_list")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "get_ap_fh_inf_list"}, call("get_ap_fh_inf_list")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "display_fh_status_bss"}, template("admin_mtk/mtk_wifi_map_bssinfo")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "display_bh_link_metrics_ctrler"}, template("admin_mtk/mtk_wifi_map_bh_link_metrics")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "easymesh_bss_config_renew"}, template("admin_mtk/mtk_wifi_map_bss_cfg_renew")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "easymesh_bss_cfg"}, call("easymesh_bss_cfg")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "validate_add_easymesh_bss_req"}, call("validate_add_easymesh_bss_req")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "remove_easymesh_bss_cfg_req"}, call("remove_easymesh_bss_cfg_req")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "apply_easymesh_bss_cfg"}, call("apply_easymesh_bss_cfg")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "apply_force_ch_switch"}, call("apply_force_ch_switch")).leaf = true;
-        entry({"admin", "mtk", "multi_ap", "apply_user_preferred_channel"}, call("apply_user_preferred_channel")).leaf = true;       
-    end
 end
 
 function test()
@@ -235,10 +184,10 @@ local __mtkwifi_reload = function (devname)
     end
 
     if wifi_restart then
-        os.execute("wifi restart "..(devname or ""))
+        os.execute("wifi-mtk restart "..(devname or ""))
         debug_write("wifi restart "..(devname or ""))
     elseif wifi_reload then
-        os.execute("wifi reload "..(devname or ""))
+        os.execute("wifi-mtk reload "..(devname or ""))
         debug_write("wifi reload "..(devname or ""))
     end
 
@@ -251,10 +200,6 @@ local __mtkwifi_reload = function (devname)
         end
     end
 
-    if map_help then
-        local easymesh_applied_path = mtkwifi.__profile_applied_settings_path(mtkwifi.__easymesh_profile_path())
-        os.execute("cp -f "..mtkwifi.__easymesh_profile_path().." "..easymesh_applied_path)
-    end
 end
 
 function __process_settings_before_apply(devname, profile, diff)
@@ -1340,16 +1285,11 @@ function get_station_list()
 end
 
 function reset_wifi(devname)
-    -- Handle both old and new driver config paths
-    if devname then
-        -- Try new driver path first, then fall back to old
-        local new_path = "/rom/etc/wireless/mt7628/"
-        local old_path = "/rom/etc/wireless/"..devname.."/"
-        if mtkwifi.exists(new_path.."mt7628.dat") then
-            os.execute("cp -f "..new_path.." /etc/wireless/")
-        else
-            os.execute("cp -f "..old_path.." /etc/wireless/")
-        end
+    -- Restore the factory profile shipped with luci-app-mtk
+    if mtkwifi.exists("/usr/share/mt7628/mt7628.dat") and mtkwifi.exists("/etc/wireless/mt7628") then
+        os.execute("cp -f /usr/share/mt7628/mt7628.dat /etc/wireless/mt7628/mt7628.dat")
+    elseif devname then
+        os.execute("cp -f /rom/etc/wireless/"..devname.."/ /etc/wireless/")
     else
         os.execute("cp -rf /rom/etc/wireless /etc/")
     end
@@ -1495,34 +1435,6 @@ function get_5G_2nd_80Mhz_channel_list()
     end
     http.write_json(ch_list)
 end
-
-function webcmd()
-    local cmd = http.formvalue("cmd")
-    if cmd then
-        local result = mtkwifi.read_pipe(tostring(cmd).." 2>&1")
-        result = result:gsub("<", "&lt;")
-        http.write(tostring(result))
-    else
-        http.write_json(http.formvalue())
-    end
-end
-
-function hwnat_toggle(enable)
-    debug_write("debug", "hwnat_toggle "..tostring(enable))
-    os.execute("mkdir -p /tmp/mtk/")
-    if enable == "enable" then
-        os.execute("hwnat-enable.sh >> /tmp/mtk/hwnat.log 2>&1")
-    else
-        os.execute("hwnat-disable.sh >> /tmp/mtk/hwnat.log 2>&1")
-    end
-    return luci.http.redirect(luci.dispatcher.build_url("admin", "mtk", "hwnat"))
-end
-
-function hwnat_status()
-    local result = mtkwifi.read_pipe("hwnat -g 2>&1")
-    result = result:gsub("<", "&lt;")
-    result = result:gsub(">", "&gt;")
-    http.write(tostring(result))
 end
 
 function net_cfg()
@@ -1832,9 +1744,9 @@ end
 
 local exec_reset_to_defaults_cmd = function (devname)
     if devname then
-        os.execute("wifi reset "..devname)
+        os.execute("wifi-mtk reset "..devname)
     else
-        os.execute("wifi reset")
+        os.execute("wifi-mtk reset")
     end
 end
 

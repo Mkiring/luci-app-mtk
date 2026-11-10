@@ -131,71 +131,7 @@ function mtkwifi.__get_l1dat()
 end
 
 
--- ============================================================
--- MT7628 New Driver Compatibility Layer (v4.1.1.0+)
--- Adapted for kernel 6.x with cfg80211 interface naming
--- ============================================================
-
--- Detect if running on new MT7628 driver (cfg80211-based)
-function mtkwifi.__is_mt7628_new_driver()
-    -- Check for wlan0 interface which indicates new cfg80211 driver
-    local has_wlan = mtkwifi.exists("/sys/class/net/wlan0")
-    local no_ra = not mtkwifi.exists("/sys/class/net/ra0")
-    return has_wlan and no_ra
-end
-
--- Get actual interface name based on driver type
--- Old driver: ra0, ra1... New driver: wlan0, wlan1...
-function mtkwifi.__get_iface_prefix(devname)
-    if mtkwifi.__is_mt7628_new_driver() then
-        return "wlan"
-    end
-    -- Default to old driver prefix
-    return "ra"
-end
-
--- Normalize interface name between old/new drivers
-function mtkwifi.__normalize_ifname(ifname)
-    if not ifname then return nil end
-    if mtkwifi.__is_mt7628_new_driver() then
-        -- Map ra0 -> wlan0, ra1 -> wlan1, etc.
-        local num = string.match(ifname, "^ra(\d+)$")
-        if num then
-            return "wlan" .. num
-        end
-    else
-        -- Map wlan0 -> ra0, wlan1 -> ra1, etc.
-        local num = string.match(ifname, "^wlan(\d+)$")
-        if num then
-            return "ra" .. num
-        end
-    end
-    return ifname
-end
-
--- Get config directory path based on driver type
-function mtkwifi.__get_config_dir(devname)
-    if mtkwifi.__is_mt7628_new_driver() then
-        return "/etc/wireless/mt7628"
-    end
-    return "/etc/Wireless/" .. devname
-end
-
--- Find the main wireless interface name for current driver
-function mtkwifi.__find_main_interface()
-    if mtkwifi.__is_mt7628_new_driver() then
-        -- Check for wlan interfaces
-        local result = mtkwifi.read_pipe("ls /sys/class/net/ | grep ^wlan | head -1")
-        return result and result:gsub("%s+", "") or "wlan0"
-    else
-        -- Check for ra interfaces  
-        local result = mtkwifi.read_pipe("ls /sys/class/net/ | grep ^ra | head -1")
-        return result and result:gsub("%s+", "") or "ra0"
-    end
-end
-
 function mtkwifi.sleep(s)
-
     local ntime = os.clock() + s
     repeat until os.clock() > ntime
 end
@@ -872,14 +808,12 @@ local dbdc_prefix = {
     {"ra",  "rax"},
     {"rai", "ray"},
     {"rae", "raz"},
-    {"wlan", "wan"},  -- MT7628 new driver cfg80211 interfaces
 }
 
 local dbdc_apcli_prefix = {
     {"apcli",  "apclix"},
     {"apclii", "apcliy"},
     {"apclie", "apcliz"},
-    {"wlan", "wan"},  -- MT7628 new driver cfg80211 apcli
 }
 
 function mtkwifi.band(mode)
@@ -941,18 +875,7 @@ end
 function mtkwifi.search_dev_and_profile_orig()
     local nixio = require("nixio")
     local result = {}
-    
-    -- New MT7628 driver format: /etc/wireless/mt7628/mt7628.dat
-    if mtkwifi.__is_mt7628_new_driver() then
-        local tmp = io.popen("find /etc/wireless -type f -name \"mt7628.dat\"" )
-        for datfile in tmp:lines() do
-            result["mt7628"] = datfile
-        end
-        tmp:close()
-        return result
-    end
-    
-    -- Old driver format: scan /etc/wireless/ for .dat files
+
     local dir = io.popen("ls /etc/wireless/")
     if not dir then return result end
     -- case 1: mt76xx.dat (best)
@@ -989,11 +912,6 @@ function mtkwifi.search_dev_and_profile_orig()
 end
 
 function mtkwifi.search_dev_and_profile_l1()
-    -- Skip l1profile for new MT7628 driver (uses direct .dat files)
-    if mtkwifi.__is_mt7628_new_driver() then
-        return nil
-    end
-    
     local l1dat = mtkwifi.__get_l1dat()
 
     if not l1dat then return end
@@ -1032,12 +950,7 @@ function mtkwifi.__setup_vifs(cfgs, devname, mainidx, subidx)
     local vifs = {}
     local dev_idx = ""
 
-    -- For new driver, use normalized prefix
-    if mtkwifi.__is_mt7628_new_driver() then
-        prefix = "wlan"
-    else
-        prefix = l1dat and l1dat[dridx][devname].ext_ifname or dbdc_prefix[mainidx][subidx]
-    end
+    prefix = l1dat and l1dat[dridx][devname].ext_ifname or dbdc_prefix[mainidx][subidx]
 
     dev_idx = string.match(devname, "(%w+)")
 
@@ -1052,13 +965,7 @@ function mtkwifi.__setup_vifs(cfgs, devname, mainidx, subidx)
         vifs[j] = {}
         vifs[j].vifidx = j -- start from 1
         dev_idx = string.match(devname, "(%w+)")
-        
-        -- For new driver, interface naming is wlan0, wlan1...
-        if mtkwifi.__is_mt7628_new_driver() then
-            main_ifname = "wlan" .. (j == 1 and "0" or "")
-        else
-            main_ifname = l1dat and l1dat[dridx][devname].main_ifname or dbdc_prefix[mainidx][subidx].."0"
-        end
+        main_ifname = l1dat and l1dat[dridx][devname].main_ifname or dbdc_prefix[mainidx][subidx].."0"
         vifs[j].vifname = j == 1 and main_ifname or prefix..(j-1)
         if mtkwifi.exists("/sys/class/net/"..vifs[j].vifname) then
             local flags = tonumber(mtkwifi.read_pipe("cat /sys/class/net/"..vifs[j].vifname.."/flags 2>/dev/null")) or 0
@@ -1289,15 +1196,7 @@ function mtkwifi.get_all_devs()
             devs[i].vifs = mtkwifi.__setup_vifs(cfgs, devname, devs[i].mainidx, devs[i].subidx)
             devs[i].apcli = mtkwifi.__setup_apcli(cfgs, devname, devs[i].mainidx, devs[i].subidx)
 
-            -- Get driver version based on driver type
-            if mtkwifi.__is_mt7628_new_driver() then
-                -- New driver: check via iwpriv or modinfo
-                local vif_name = mtkwifi.__find_main_interface()
-                local version = mtkwifi.read_pipe("iwpriv "..vif_name.." get_driverinfo 2>/dev/null") or 
-                                mtkwifi.read_pipe("modinfo mt7628 2>/dev/null | grep version") or
-                                mtkwifi.read_pipe("cat /sys/module/mt7628/version 2>/dev/null")
-                devs[i].version = (type(version) == "string" and version ~= "") and version:gsub("%s+", "") or "MT7628 v4.1.1.0"
-            elseif mtkwifi.exists("/etc/wireless/"..devs[i].maindev.."/version") then
+            if mtkwifi.exists("/etc/wireless/"..devs[i].maindev.."/version") then
                 local version = mtkwifi.read_pipe("cat /etc/wireless/"..devs[i].maindev.."/version 2>/dev/null")
                 devs[i].version = (type(version) == "string" and version ~= "") and version or "Unknown: Empty version file!"
             else
@@ -1370,8 +1269,6 @@ end
 
 
 function mtkwifi.scan_ap(vifname)
-    -- Normalize interface name for new driver
-    vifname = mtkwifi.__normalize_ifname(vifname) or vifname
     os.execute("iwpriv "..vifname.." set SiteSurvey=0")
     os.execute("sleep 10") -- depends on your env
     local scan_result = mtkwifi.read_pipe("iwpriv "..vifname.." get_site_survey 2>/dev/null")
@@ -1471,10 +1368,6 @@ function mtkwifi.__any_wsc_enabled(wsc_conf_mode)
 end
 
 function mtkwifi.__restart_if_wps(devname, ifname, cfgs)
-    -- Normalize interface names for new driver
-    ifname = mtkwifi.__normalize_ifname(ifname) or ifname
-    devname = mtkwifi.__normalize_ifname(devname) or devname
-    
     local devs = mtkwifi.get_all_devs()
     local ssid_index = devs[devname] and devs[devname]["vifs"] and devs[devname]["vifs"][ifname] and devs[devname]["vifs"][ifname].vifidx or 1
     local wsc_conf_mode = ""
@@ -1507,14 +1400,8 @@ function mtkwifi.restart_8021x(devname, devices)
     local main_ifname = l1dat and l1dat[dridx][devname].main_ifname or dbdc_prefix[mainidx][subidx].."0"
     local prefix = l1dat and l1dat[dridx][devname].ext_ifname or dbdc_prefix[mainidx][subidx]
 
-    -- Use normalized interface name for new driver
-    if mtkwifi.__is_mt7628_new_driver() then
-        main_ifname = mtkwifi.__normalize_ifname(main_ifname) or "wlan0"
-        prefix = "wlan"
-    end
-
-    local ps_cmd = "ps | grep -v grep | grep -E 'hostapd|rt2860apd' | grep "..main_ifname.." | awk '{print $1}'"
-    local pid_cmd = "cat /var/run/hostapd-"..main_ifname..".pid 2>/dev/null || cat /var/run/rt2860apd_"..main_ifname..".pid"
+    local ps_cmd = "ps | grep -v grep | grep rt2860apd | grep "..main_ifname.." | awk '{print $1}'"
+    local pid_cmd = "cat /var/run/rt2860apd_"..devs[devname].vifs[1].vifname..".pid"
     local apd_pid = mtkwifi.read_pipe(pid_cmd) or mtkwifi.read_pipe(ps_cmd)
     if tonumber(apd_pid) then
         os.execute("kill "..apd_pid)
@@ -1543,11 +1430,7 @@ function mtkwifi.restart_8021x(devname, devices)
         return
     end
     
-    -- Use standard hostapd for new driver, legacy daemons for old
-    if mtkwifi.__is_mt7628_new_driver() then
-        local hostapd_conf = cfgs and cfgs["hostapd_conf"] and "/etc/hostapd/"..cfgs["hostapd_conf"] or "/etc/hostapd/hostapd.conf"
-        mtkwifi.__fork_exec("hostapd -P /var/run/hostapd-"..main_ifname..".pid "..hostapd_conf)
-    elseif prefix == "ra" then
+    if prefix == "ra" then
         mtkwifi.__fork_exec("rt2860apd -i "..main_ifname.." -p "..prefix)
     elseif prefix == "rae" then
         mtkwifi.__fork_exec("rtwifi3apd -i "..main_ifname.." -p "..prefix)
@@ -1563,8 +1446,6 @@ function mtkwifi.dat2uci(datfile, ucifile)
     local cfgs = mtkwifi.load_profile(datfile)
 
     local uci = {}
-    -- Detect interface name based on driver type
-    local ifprefix = mtkwifi.__is_mt7628_new_driver() and "wlan" or "ra"
 
     uci["wifi-device"]={}
     uci["wifi-device"][".name"] = device
@@ -1581,7 +1462,7 @@ function mtkwifi.dat2uci(datfile, ucifile)
         iface["ssid"] = cfgs["SSID"..(i)]
         iface["mode"] = "ap"
         iface["network"] = "lan"
-        iface["ifname"] = ifprefix .. "0"
+        iface["ifname"] = "ra0"
         iface[".name"] = device.."."..iface["ifname"]
 
         i=i+1
