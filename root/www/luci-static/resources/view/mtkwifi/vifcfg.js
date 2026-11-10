@@ -99,13 +99,13 @@ return L.view.extend({
 		var psk  = document.querySelector('#cbi-mtk-vif input[type="password"]').value;
 
 		if (!ssid || ssid.length > 32)
-			return ui.showModal(_('Error'), [ E('p', {}, _('Invalid SSID (1-32 characters).')), ui.createInlineButton() ]);
+			return ui.showModal(_('Error'), [ E('p', {}, _('Invalid SSID (1-32 characters).')), E('button', { 'class': 'cbi-button', 'click': ui.hideModal }, _('Dismiss')) ]);
 
 		var mode = this.authSel.getValue();
 		var needPsk = (mode != 'Disable' && mode != 'OPEN');
 
 		if (needPsk && (psk.length < 8 || psk.length > 63))
-			return ui.showModal(_('Error'), [ E('p', {}, _('WPA key must be 8-63 characters.')), ui.createInlineButton() ]);
+			return ui.showModal(_('Error'), [ E('p', {}, _('WPA key must be 8-63 characters.')), E('button', { 'class': 'cbi-button', 'click': ui.hideModal }, _('Dismiss')) ]);
 
 		var vals = {
 			SSID1: ssid,
@@ -153,7 +153,7 @@ return L.view.extend({
 				setTimeout(function() { location.reload(); }, 5000);
 			})
 			.catch(function(err) {
-				ui.showModal(_('Error'), [ E('p', {}, _('Failed: ') + err), ui.createInlineButton() ]);
+				ui.showModal(_('Error'), [ E('p', {}, _('Failed: ') + err), E('button', { 'class': 'cbi-button', 'click': ui.hideModal }, _('Dismiss')) ]);
 			});
 	}
 });

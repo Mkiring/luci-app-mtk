@@ -126,8 +126,17 @@ function action_dat_set() {
 }
 
 function action_wifi_reload() {
+	let res;
+
+	try {
+		res = call_wifimtk('restart');
+	}
+	catch (e) {
+		res = { status: 'error', output: 'exception: ' + e };
+	}
+
 	http.prepare_content('application/json');
-	http.write_json(call_wifimtk('restart'));
+	http.write_json(res);
 }
 
 function call_wifimtk(cmd) {
@@ -137,11 +146,11 @@ function call_wifimtk(cmd) {
 		return { status: 'error', output: 'popen failed' };
 
 	let output = fd.read('all');
-	let exit = fd.close();
+	let rc = fd.close();
 
 	return {
-		status: (exit == 0) ? 'ok' : 'error',
-		exit: exit,
+		status: (rc == 0) ? 'ok' : 'error',
+		exit: rc,
 		command: `${WIFIMTK} ${cmd}`,
 		output: output ?? ''
 	};

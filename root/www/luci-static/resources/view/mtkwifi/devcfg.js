@@ -126,7 +126,7 @@ return L.view.extend({
 				setTimeout(function() { location.reload(); }, 5000);
 			})
 			.catch(function(err) {
-				ui.showModal(_('Error'), [ E('p', {}, _('Failed: ') + err), ui.createInlineButton() ]);
+				ui.showModal(_('Error'), [ E('p', {}, _('Failed: ') + err), E('button', { 'class': 'cbi-button', 'click': ui.hideModal }, _('Dismiss')) ]);
 			});
 	}
 });
