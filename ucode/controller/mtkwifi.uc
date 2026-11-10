@@ -40,7 +40,7 @@ function load_profile() {
 	for (let line in split(readfile(PROFILE_PATH) ?? '', '\n')) {
 		line = trim(line);
 
-		if (!length(line) || line[0] == '#')
+		if (!length(line) || substr(line, 0, 1) == '#')
 			continue;
 
 		let pos = index(line, '=');
