@@ -1,8 +1,9 @@
 'use strict';
 /* MT7628 radio (device) configuration, rewritten as a native LuCI view. */
 
-return L.require('ui').then(function(ui) {
-	return L.view.extend({
+'require ui';
+
+return L.view.extend({
 	title: _('MTK WiFi - Device Configuration'),
 
 	load: function() {
@@ -123,5 +124,4 @@ return L.require('ui').then(function(ui) {
 				ui.showModal(_('Error'), [ E('p', {}, _('Failed: ') + err), ui.createInlineButton() ]);
 			});
 	}
-});
 });
