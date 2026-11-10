@@ -55,7 +55,7 @@ function index()
 
     entry({"admin", "mtk", "test"}, call("test"))
 
-    entry({"admin", "mtk"}, alias({"admin", "mtk", "wifi"}), _("MTK"), 80)
+    entry({"admin", "mtk"}, alias("admin", "mtk", "wifi"), _("MTK"), 80)
     entry({"admin", "mtk", "wifi"}, template("admin_mtk/mtk_wifi_overview"), _("WiFi configuration"), 1)
     entry({"admin", "mtk", "wifi", "dev_cfg_view"}, template("admin_mtk/mtk_wifi_dev_cfg")).leaf = true
     entry({"admin", "mtk", "wifi", "dev_cfg"}, call("dev_cfg")).leaf = true
