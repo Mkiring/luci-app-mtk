@@ -57,12 +57,9 @@ function index()
 
     entry({"admin", "mtk"}, alias("admin", "mtk", "wifi"), _("MTK"), 80)
     entry({"admin", "mtk", "wifi"}, template("admin_mtk/mtk_wifi_overview"), _("WiFi configuration"), 1)
-    entry({"admin", "mtk", "wifi", "dev_cfg_view"}, template("admin_mtk/mtk_wifi_dev_cfg")).leaf = true
     entry({"admin", "mtk", "wifi", "dev_cfg"}, call("dev_cfg")).leaf = true
     entry({"admin", "mtk", "wifi", "dev_cfg_raw"}, call("dev_cfg_raw")).leaf = true
-    entry({"admin", "mtk", "wifi", "vif_cfg_view"}, template("admin_mtk/mtk_wifi_vif_cfg")).leaf = true
     entry({"admin", "mtk", "wifi", "vif_cfg"}, call("vif_cfg")).leaf = true
-    entry({"admin", "mtk", "wifi", "vif_add_view"}, template("admin_mtk/mtk_wifi_vif_cfg")).leaf = true
     entry({"admin", "mtk", "wifi", "vif_add"}, call("vif_cfg")).leaf = true
     entry({"admin", "mtk", "wifi", "vif_del"}, call("vif_del")).leaf = true
     entry({"admin", "mtk", "wifi", "vif_disable"}, call("vif_disable")).leaf = true

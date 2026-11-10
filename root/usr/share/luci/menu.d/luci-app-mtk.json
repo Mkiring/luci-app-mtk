@@ -1,0 +1,53 @@
+{
+	"admin/mtk/wifi/dat_get": {
+		"action": {
+			"type": "function",
+			"module": "luci.controller.mtkwifi",
+			"function": "action_dat_get"
+		}
+	},
+
+	"admin/mtk/wifi/dat_set": {
+		"action": {
+			"type": "function",
+			"module": "luci.controller.mtkwifi",
+			"function": "action_dat_set"
+		}
+	},
+
+	"admin/mtk/wifi/wifi_reload": {
+		"action": {
+			"type": "function",
+			"module": "luci.controller.mtkwifi",
+			"function": "action_wifi_reload"
+		}
+	},
+
+	"admin/mtk/wifi/dev_cfg_view": {
+		"action": {
+			"type": "view",
+			"path": "mtkwifi/devcfg"
+		}
+	},
+
+	"admin/mtk/wifi/dev_cfg_view/*": {
+		"action": {
+			"type": "view",
+			"path": "mtkwifi/devcfg"
+		}
+	},
+
+	"admin/mtk/wifi/vif_cfg_view": {
+		"action": {
+			"type": "view",
+			"path": "mtkwifi/vifcfg"
+		}
+	},
+
+	"admin/mtk/wifi/vif_cfg_view/*": {
+		"action": {
+			"type": "view",
+			"path": "mtkwifi/vifcfg"
+		}
+	}
+}
