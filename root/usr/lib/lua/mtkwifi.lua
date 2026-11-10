@@ -152,9 +152,18 @@ function mtkwifi.deepcopy(orig)
 end
 
 function mtkwifi.read_pipe(pipe)
-    local fp = io.popen(pipe)
-    local txt =  fp:read("*a")
-    fp:close()
+    -- io.popen() reads surface EINTR ("Interrupted system call") when a
+    -- signal (e.g. SIGCHLD of the popen child) hits the pipe read; retry.
+    local txt
+    for _ = 1, 3 do
+        local ok, res = pcall(function()
+            local fp = io.popen(pipe)
+            local out = fp:read("*a")
+            fp:close()
+            return out
+        end)
+        if ok then txt = res break end
+    end
     return txt
 end
 
@@ -876,14 +885,14 @@ function mtkwifi.search_dev_and_profile_orig()
     local nixio = require("nixio")
     local result = {}
 
-    local dir = io.popen("ls /etc/wireless/")
-    if not dir then return result end
+    local dirout = mtkwifi.read_pipe("ls /etc/wireless/")
+    if not dirout then return result end
     -- case 1: mt76xx.dat (best)
     -- case 2: mt76xx.n.dat (multiple card of same dev)
     -- case 3: mt76xx.n.nG.dat (case 2 plus dbdc and multi-profile, bloody hell....)
-    for line in dir:lines() do
-        local tmp = io.popen("find /etc/wireless/"..line.." -type f -name \"*.dat\"")
-        for datfile in tmp:lines() do
+    for line in mtkwifi.__lines(dirout) do
+        local tmpout = mtkwifi.read_pipe("find /etc/wireless/"..line.." -type f -name \"*.dat\"")
+        for datfile in mtkwifi.__lines(tmpout or "") do
             repeat do
             -- for case 1
             local devname = string.match(datfile, "("..line..").dat")
@@ -905,9 +914,7 @@ function mtkwifi.search_dev_and_profile_orig()
             end
             end until true
         end
-        tmp:close()
     end
-    dir:close()
     return result
 end
 
