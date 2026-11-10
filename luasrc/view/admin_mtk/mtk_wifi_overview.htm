@@ -8,7 +8,6 @@
     Hua Shao <nossiac@163.com>
 -->
 
-<script src="/luci-static/resources/monCon.js"></script>
 
 <%
 local mtkwifi = require("mtkwifi")
@@ -512,7 +511,6 @@ end
     }
 
     window.onload = function(){
-        MonCon.ping();
         get_apply_status();
         check_update_easymesh_profile();
         updateApCliInfo();

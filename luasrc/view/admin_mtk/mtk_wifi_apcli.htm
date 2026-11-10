@@ -41,7 +41,6 @@ if pcall(require, "map_helper") then
 end
 %>
 
-<script src="/luci-static/resources/monCon.js"></script>
 <script type="text/javascript" src="<%=resource%>/cbi.js?v=git-17.250.41546-90ac861"></script>
 <script type="text/javascript">
 
@@ -1665,7 +1664,6 @@ function hi(to, devname, vifname)
     }
 
     window.onload = function() {
-        MonCon.ping();
         get_apply_status();
         <% if cfgs.ApCliEnable == "1" then %>
             toggle_apcli(true);

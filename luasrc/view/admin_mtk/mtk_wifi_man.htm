@@ -17,7 +17,6 @@ local dev = nil -- this is the dev we choose
 local cfgs = nil -- profile of chosen dev
 %>
 
-<script src="/luci-static/resources/monCon.js"></script>
 <script type="text/javascript" src="<%=resource%>/cbi.js"></script>
 
 <h2><a name="content">M.A.N. (MediaTek Adaptive Netowrk)</a></h2>
@@ -223,7 +222,6 @@ local cfgs = nil -- profile of chosen dev
     }
 
     window.onload = function() {
-        MonCon.ping();
         get_apply_status();
         <% if dev and cfgs then %>
             GroupIDMode_onchange(<% if cfgs.ApCliEzGenGroupID == "" then %>"0"<% else %>"1"<%end%>);

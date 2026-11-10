@@ -32,7 +32,6 @@ if pcall(require, "map_helper") then
 end
 %>
 
-<script src="/luci-static/resources/monCon.js"></script>
 <script type="text/javascript" src="<%=resource%>/cbi.js?v=git-17.250.41546-90ac861"></script>
 <script type="text/javascript">
 function hi(to) {
@@ -2482,7 +2481,6 @@ Should show all supported toneplans
     }
 
     window.onload = function() {
-        MonCon.ping();
         get_apply_status();
         WirelessMode_onchange('<%=dev.WirelessMode%>');
         <% if dev.isPowerBoostSupported then%>
