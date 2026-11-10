@@ -1435,7 +1435,6 @@ function get_5G_2nd_80Mhz_channel_list()
     end
     http.write_json(ch_list)
 end
-end
 
 function net_cfg()
     http.write_json(http.formvalue())
